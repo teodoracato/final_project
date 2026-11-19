@@ -1,16 +1,12 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+from app.api import projects
 
-projects = [
-    {"id": 5, "name": "webinar"},
-    {"id": 2, "name": "soliter"},
-]
+app = FastAPI()
+app.include_router(projects.router)
+
 
 @app.get("/")
 def health_check():
-    return {"status":"ok"}
+    return {"status": "ok"}
 
-@app.get("/projects/")
-def list_projects():
-    return projects
