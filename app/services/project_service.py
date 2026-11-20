@@ -1,31 +1,27 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.project import Project
 from app.schemas.project import ProjectCreate
 
-projects = [
-    {"id": 5, "name": "webinar"},
-    {"id": 2, "name": "soliter"},
-]
+
+async def list_projects(session: AsyncSession) -> list[Project]:
+    result = await session.execute(select(Project).order_by(Project.id))
+    return list(result.scalars().all())
 
 
-def list_projects() -> list[dict]:
-    return projects
+async def create_project(session: AsyncSession, data: ProjectCreate) -> Project:
+    project = Project(**data.model_dump())
+    session.add(project)
+    await session.commit()
+    await session.refresh(project)
+    return project
 
 
-def create_project(data: ProjectCreate) -> dict:
-    ids = []
-    for project in projects:
-        ids.append(project["id"])
-
-    new_id = max(ids, default=0) + 1
-
-    new_project = {"id": new_id, "name": data.name}
-    projects.append(new_project)
-
-    return new_project
-
-
-def delete_project(project_id: int) -> bool:
-    for project in projects:
-        if project_id == project["id"]:
-            projects.remove(project)
-            return True
-    return False
+async def delete_project(session: AsyncSession, project_id: int) -> bool:
+    project = await session.get(Project, project_id)
+    if project is None:
+        return False
+    await session.delete(project)
+    await session.commit()
+    return True
