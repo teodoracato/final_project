@@ -22,4 +22,3 @@ app.include_router(projects.router)
 @app.get("/")
 def health_check():
     return {"status": "ok"}
-
